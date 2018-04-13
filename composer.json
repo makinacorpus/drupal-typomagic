@@ -21,7 +21,7 @@
         "makinacorpus/php-header-fixer": "^1.0",
         "org_heigl/hyphenator": "^2"
     },
-    "suggests": {
+    "suggest": {
         "makinacorpus/drupal-sf-dic": "If you wish to use twig theme engine, this module provides twig filters"
     }
 }
