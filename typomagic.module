@@ -1,0 +1,171 @@
+<?php
+/**
+ * Typography enhancement for Drupal.
+ */
+
+use JoliTypo\Fixer;
+use MakinaCorpus\HeaderFixer\Header;
+
+require_once __DIR__.'/typomagic.field.inc';
+require_once __DIR__.'/typomagic.filter.inc';
+require_once __DIR__.'/typomagic.misc.inc';
+
+/**
+ * Run header fixer with options
+ */
+function typomagic_run_header(string $text, array $options = []) : string {
+  $options += typomagic_defaults_header();
+  return Header::fixText($text, $options['header_delta'], $options['header_relocate_orphans']);
+}
+
+/**
+ * Run joli typo with options.
+ */
+function typomagic_run_jolitypo(string $text, array $options = []) : string {
+  $options += typomagic_defaults_jolitypo();
+  // array_filter() drops unchecked values (0) form the form checkboxes
+  $fixer = new Fixer(array_filter($options['jolitypo_fixers']));
+  if ($options['jolitypo_locale']) {
+    $fixer->setLocale($options['jolitypo_locale']);
+  }
+  return $fixer->fix($text);
+}
+
+/**
+ * Run all fixers, depending on given options.
+ */
+function typomagic_run(string $text, array $options = []) : string {
+  $options += typomagic_defaults();
+  if ($options['header_enable']) {
+    $text = typomagic_run_header($text, $options);
+  }
+  if ($options['header_enable']) {
+    $text = typomagic_run_header($text, $options);
+  }
+  return $text;
+}
+
+/**
+ * Default settings for header fixer library.
+ */
+function typomagic_defaults_header() {
+  return [
+    'header_relocate_orphans' => false,
+    'header_delta' => 0,
+  ];
+}
+
+/**
+ * Default settings for jolitype library.
+ */
+function typomagic_defaults_jolitypo() {
+  // Sorry, but these are defaults for fr_FR language.
+  return [
+    'jolitypo_fixers' => [
+      'Ellipsis', 'Dimension', 'Unit', 'Dash', 'SmartQuotes',
+      'FrenchNoBreakSpace', 'NoSpaceBeforeComma', 'CurlyQuote', 'Hyphen',
+      'Trademark'
+    ],
+    'jolitypo_locale' => 'fr_FR',
+  ];
+}
+
+/**
+ * Get defaults for all typography enhancements.
+ */
+function typomagic_defaults() {
+  return typomagic_defaults_header() + typomagic_defaults_jolitypo() + [
+    'header_enable' => true,
+    'jolitypo_enable' => true,
+  ];
+}
+
+/**
+ * Settings form for header fixer library.
+ */
+function typomagic_form_header(array $defaults = []) {
+  $form = [];
+
+  $defaults += typomagic_defaults_header();
+
+  $form['header_relocate_orphans'] = [
+    '#type'           => 'checkbox',
+    '#title'          => t("Relocate orphans"),
+    '#default_value'  => $defaults['header_relocate_orphans'],
+    '#description'    => t("Orphaned or single headers will be merged among parent."),
+  ];
+
+  $form['header_delta'] = [
+    '#type'           => 'select',
+    '#title'          => t('Starts at'),
+    '#options'        => [0 => "h1", 1 => "h2", 2 => "h3", 3 => "h4", 4 => "h5", 6 => "h6"],
+    '#default_value'  => $defaults['header_delta'] ?? 0,
+  ];
+
+  return $form;
+}
+
+/**
+ * Settings form for jolitypo library.
+ */
+function typomagic_form_jolitypo(array $defaults = []) {
+  $form = [];
+
+  $defaults += typomagic_defaults_jolitypo();
+
+  $form['jolitypo_fixers'] = [
+    '#type'           => 'checkboxes',
+    '#title'          => t("Fixers"),
+    '#options'        => drupal_map_assoc([
+      'BaseOpenClosePair', 'CurlyQuote', 'Dash', 'Dimension', 'Ellipsis', 'EnglishQuotes',
+      'FrenchNoBreakSpace', 'FrenchQuotes', 'GermanQuotes', 'Hyphen', 'NoSpaceBeforeComma',
+      'Numeric', 'SmartQuotes', 'Trademark','Unit',
+    ]),
+    '#default_value'  => $defaults['jolitypo_fixers'] ?? [],
+    '#description'    => t("Please see https://github.com/jolicode/JoliTypo for detailed explaination."),
+  ];
+
+  $form['jolitypo_locale'] = [
+    '#type'           => 'select',
+    '#title'          => t('Starts at'),
+    '#options'        => drupal_map_assoc(['en_GB', 'fr_FR', 'fr_CA', 'de_DE']),
+    '#default_value'  => $defaults['jolitypo_locale'] ?? 'fr_FR',
+    '#description'    => t("Please see https://github.com/jolicode/JoliTypo for detailed explaination."),
+  ];
+
+  return $form;
+}
+
+/**
+ * Get settings form for all typography enhancements.
+ */
+function typomagic_form(array $defaults = []) {
+  $form = [];
+
+  $visibleIfHeader = ['visible' => [':input[name="header_enable"]' => ['checked' => true]]];
+  $visibleIfJolitypo = ['visible' => [':input[name="jolitypo_enable"]' => ['checked' => true]]];
+
+  $defaults += typomagic_defaults();
+
+  $form['header_enable'] = [
+    '#type'           => 'checkbox',
+    '#title'          => t("Fix header semantic hierarchy"),
+    '#default_value'  => $defaults['header_enable'],
+  ];
+  foreach (typomagic_form_header($defaults) as $name => $element) {
+    $form[$name] = $element;
+    $form[$name]['#states'] = $visibleIfHeader;
+  }
+
+  $form['jolitypo_enable'] = [
+    '#type'           => 'checkbox',
+    '#title'          => t("Micro-typography fixes depending on locale"),
+    '#default_value'  => $defaults['jolitypo_enable'],
+  ];
+  foreach (typomagic_form_jolitypo($defaults) as $name => $element) {
+    $form[$name] = $element;
+    $form[$name]['#states'] = $visibleIfJolitypo;
+  }
+
+  return $form;
+}

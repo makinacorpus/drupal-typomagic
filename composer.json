@@ -1,0 +1,27 @@
+{
+    "name": "makinacorpus/drupal-typomagic",
+    "type": "drupal-module",
+    "description": "Typography enhancement for Drupal",
+    "homepage": "http://github.com/makinacorpus/drupal-typomagic",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pierre Rineau",
+            "email": "pierre.rineau@makina-corpus.com"
+        },
+        {
+            "name": "Makina Corpus",
+            "homepage": "http://makina-corpus.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "jolicode/jolitypo": "^1.0",
+        "makinacorpus/php-header-fixer": "^1.0",
+        "org_heigl/hyphenator": "^2"
+    },
+    "suggests": {
+        "makinacorpus/drupal-sf-dic": "If you wish to use twig theme engine, this module provides twig filters"
+    }
+}

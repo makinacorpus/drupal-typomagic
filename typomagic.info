@@ -1,0 +1,4 @@
+name = Typomagic
+description = Typography enhancement for Drupal.
+core = 7.x
+php = 7
